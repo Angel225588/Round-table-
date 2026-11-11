@@ -47,9 +47,20 @@ TABLE = [
     ('David Lisnard', 'Nouvelle Énergie', 'Guillaume'),
     ('Éric Zemmour', 'Reconquête', 'Anthony'),
 ]
+def deep(name):
+    """Second-pass dossier (programme, record, court cases, controversies), if it has been researched."""
+    slug = name.split()[-1].lower().replace('é', 'e')
+    slug = 'le-pen' if slug == 'pen' else slug
+    path = research / f'approfondi-{slug}.md'
+    if not path.exists(): return ''
+    text = path.read_text()
+    cut = text.find('\n## Sources')
+    return '\n\nDOSSIER APPROFONDI : programme, parti, prises de parole, bilan, affaires et controverses\n' + (text[:cut] if cut > 0 else text).strip()
+
 seats = []
 for name, party, voice in TABLE:
     dossier = candidates.get(name)
+    if dossier: dossier += deep(name)
     seats.append({
         'name': f'Voix de {name}', 'role': party, 'voice': voice, 'kind': 'candidate',
         'persona': f"Voix d'intelligence artificielle qui présente les positions publiques documentées de {name}, à la troisième personne, sans jamais prétendre être {name.split()[0]} {' '.join(name.split()[1:])} et sans inventer de citation. Défend le projet avec conviction ; dit clairement quand le candidat n'a pas donné de réponse publique.",
@@ -80,4 +91,5 @@ assert n == 1, 'RESEARCH marker not found'
 page.write_text(html)
 print('candidates found:', ', '.join(candidates) or 'none')
 print('seats without research:', ', '.join(s['name'] for s in seats if not s['dossier']) or 'none')
+print('deep dossiers:', ', '.join(n for n, _, _ in TABLE if deep(n)) or 'none yet')
 print('page size:', len(html.encode()) // 1024, 'KB')

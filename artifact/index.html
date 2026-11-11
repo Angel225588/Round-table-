@@ -487,6 +487,7 @@ RELANCES : deux relances à utiliser quand une réponse esquive.`
     : `POSITION : une phrase qui résume le projet.
 ARGUMENTS : quatre positions documentées, une ligne chacune, avec le chiffre et la source entre parenthèses.
 QUESTIONS QUI FÂCHENT : les trois questions difficiles du dossier, en une ligne chacune, avec ce que le candidat a répondu publiquement, ou « pas de réponse publique claire ».
+BILAN ET AFFAIRES : si le dossier en contient, les faits marquants du bilan, les décisions de justice et les controverses, une ligne chacun, avec la date, ce qui a été établi, si c'est définitif, et la réponse publique du candidat.
 NON CONFIRMÉ : ce que le dossier marque comme non confirmé, ou « rien ».`;
   return `Tu prépares le siège suivant pour une table ronde en direct : ${expert.name}, ${expert.role}. ${expert.persona}
 
@@ -496,7 +497,7 @@ Voici le dossier de recherche de ce siège, établi à partir de sources publiqu
 ${expert.dossier}
 """
 
-Rédige les notes de ce siège, en français, en texte brut sans mise en forme, en moins de 190 mots, avec ces rubriques :
+Rédige les notes de ce siège, en français, en texte brut sans mise en forme, en moins de 320 mots, avec ces rubriques :
 ${shape}
 
 Écris uniquement les notes.
