@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Expert Round Table</title>
+<title>Table ronde</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap">
 <style>
 /* Layout: one dark room. Setup form, then prep cards, then a round table with the transcript beside it. */
@@ -109,71 +109,104 @@ details pre { white-space: pre-wrap; font: inherit; color: var(--text); margin: 
   .avatar { width: 46px; height: 46px; font-size: 15px; }
   .seat .role { display: none; }
 }
+
+.talk { max-width: 720px; text-align: center; }
+.talk .sub { max-width: 52ch; margin-inline: auto; }
+.big-mic {
+  position: relative; width: 220px; height: 220px; border-radius: 50%; margin: 12px auto 6px; display: grid; place-items: center;
+  background: var(--gold); border-color: var(--gold); color: #1a1508; font-weight: 700; font-size: 17px; padding: 28px; line-height: 1.25;
+  box-shadow: 0 18px 50px #0009;
+}
+.big-mic .ring { position: absolute; inset: -12px; border-radius: 50%; border: 2px solid var(--gold); opacity: .35; }
+.big-mic.listening { background: var(--danger); border-color: var(--danger); color: #fff; }
+.big-mic.listening .ring { border-color: var(--danger); animation: ring 1.4s ease-out infinite; }
+.big-mic:disabled { background: var(--panel-2); border-color: var(--line); color: var(--muted); box-shadow: none; }
+.big-mic:disabled .ring { display: none; }
+@keyframes ring { from { transform: scale(1); opacity: .6; } to { transform: scale(1.25); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .big-mic.listening .ring { animation: none; } }
+.heard-label { text-align: left; margin-top: 18px; }
+.talk .join-row { justify-content: center; }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><span class="dot"></span> Round Table</div>
+  <div class="brand"><span class="dot"></span> Table ronde</div>
   <div id="badges"></div>
 </header>
 
-<!-- 1. Setup -->
-<main id="setup" class="screen">
-  <h1>Who's at your table?</h1>
-  <p class="sub">Set the topic, seat your experts, let them prepare. Then join the call and talk to them.</p>
-  <label>Topic
+<!-- 0. Parler -->
+<main id="talk" class="screen talk">
+  <h1>De quoi parle-t-on ce soir ?</h1>
+  <p class="sub">Appuyez et dites tout d'un trait : le sujet, ce qu'il faut savoir, qui vous voulez autour de la table. La table se compose toute seule.</p>
+  <button id="bigMic" class="big-mic" type="button"><span class="ring"></span><span id="bigMicLabel">Appuyez pour parler</span></button>
+  <p id="talkHint" class="status"></p>
+  <label for="heard" class="heard-label">Ce que j'ai entendu <span class="hint">vous pouvez corriger ou écrire ici</span>
+    <textarea id="heard" rows="5" placeholder="Exemple : je veux parler de la situation politique en France avant la présidentielle, avec les principaux candidats et trois journalistes qui posent les questions difficiles. Je m'appelle Anthonio."></textarea>
+  </label>
+  <p id="talkError" class="error" hidden></p>
+  <div class="join-row">
+    <button id="compose" class="primary" type="button">Composer la table</button>
+    <button id="manual" class="ghost" type="button">Remplir à la main</button>
+  </div>
+</main>
+
+<!-- 1. Vérifier -->
+<main id="setup" class="screen" hidden>
+  <h1>Voici votre table</h1>
+  <p class="sub">Tout est modifiable. Quand c'est bon, envoyez-les se préparer.</p>
+  <label for="topic">Sujet
     <textarea id="topic" rows="2"></textarea>
   </label>
-  <label>Background the experts should know <span class="hint">optional</span>
-    <textarea id="context" rows="2" placeholder="Where you are today, numbers, constraints, what you've tried…"></textarea>
+  <label for="context">Ce que les participants doivent savoir <span class="hint">facultatif</span>
+    <textarea id="context" rows="2"></textarea>
   </label>
   <div class="row">
-    <label>Your name <input id="hostName" placeholder="Host"></label>
-    <label>Language <select id="lang"></select></label>
+    <label for="hostName">Votre prénom <input id="hostName" placeholder="Hôte"></label>
   </div>
   <div class="section-head">
-    <h2>Experts</h2>
-    <button id="addExpert" class="ghost" type="button">Add a seat</button>
+    <h2>Participants</h2>
+    <button id="addExpert" class="ghost" type="button">Ajouter un siège</button>
   </div>
   <div id="experts" class="cards"></div>
   <p id="setupError" class="error" hidden></p>
-  <button id="start" class="primary">Send them to prepare</button>
-</main>
-
-<!-- 2. Prep -->
-<main id="prepScreen" class="screen" hidden>
-  <h1>The experts are preparing</h1>
-  <p class="sub">Each expert is writing their own notes at the same time. Open a card to read them.</p>
-  <div id="prepCards" class="cards"></div>
-  <div id="joinRow" class="join-row" hidden>
-    <a id="voiceCall" class="primary-link" target="_blank" rel="noopener">Join the voice call</a>
-    <button id="join" class="ghost" type="button">Stay here with Claude's voices</button>
-    <p class="sub">The voice call opens ElevenLabs in a new tab with this table, its notes and the expert voices. It uses your ElevenLabs credits.</p>
+  <div class="join-row">
+    <button id="start" class="primary" type="button">Les envoyer se préparer</button>
+    <button id="back" class="ghost" type="button">Recommencer à la voix</button>
   </div>
 </main>
 
-<!-- 3. Call -->
+<!-- 2. Préparation -->
+<main id="prepScreen" class="screen" hidden>
+  <h1>La table se prépare</h1>
+  <p class="sub">Chaque participant rédige ses notes en même temps. Ouvrez une carte pour les lire.</p>
+  <div id="prepCards" class="cards"></div>
+  <div id="joinRow" class="join-row" hidden>
+    <a id="voiceCall" class="primary-link" target="_blank" rel="noopener">Rejoindre l'appel vocal</a>
+    <button id="join" class="ghost" type="button">Rester ici avec les voix de Claude</button>
+    <p class="sub">L'appel vocal ouvre ElevenLabs dans un nouvel onglet, avec cette table, ses notes et ses voix françaises. Il utilise vos crédits ElevenLabs.</p>
+  </div>
+</main>
+
+<!-- 3. Appel -->
 <main id="call" class="screen call" hidden>
   <section class="stage">
     <div class="table" id="table">
-      <div class="table-top">
-        <div id="caption" class="caption"></div>
-      </div>
+      <div class="table-top"><div id="caption" class="caption"></div></div>
     </div>
     <div class="controls">
-      <button id="mic" class="round" title="Speak">Speak</button>
+      <button id="mic" class="round" type="button">Parler</button>
       <form id="say">
-        <input id="sayText" placeholder="Say something to the table…" autocomplete="off">
-        <button class="ghost">Send</button>
+        <input id="sayText" placeholder="Dites quelque chose à la table…" autocomplete="off">
+        <button class="ghost">Envoyer</button>
       </form>
-      <button id="continue" class="ghost" type="button" title="Let the experts keep talking">Keep going</button>
-      <label class="toggle"><input type="checkbox" id="auto"> Free-flow</label>
-      <button id="end" class="danger" type="button">Wrap up</button>
+      <button id="continue" class="ghost" type="button">Continuez</button>
+      <label class="toggle" for="auto"><input type="checkbox" id="auto"> Débat libre</label>
+      <button id="end" class="danger" type="button">Conclure</button>
     </div>
     <p id="status" class="status"></p>
   </section>
   <aside class="transcript">
-    <h2>Transcript</h2>
+    <h2>Transcription</h2>
     <div id="log"></div>
   </aside>
 </main>
@@ -182,51 +215,50 @@ details pre { white-space: pre-wrap; font: inherit; color: var(--text); margin: 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+const initials = (name) => name.replace(/^Voix de (la candidature de )?/i, '').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const COLORS = ['#6ea8fe', '#f58fb0', '#7fd8a6', '#f2a65a', '#b79cf7', '#5fd0d6', '#e8d26a', '#ef8a7a'];
-const LANGS = { en: 'English', es: 'Spanish', fr: 'French' };
-// The voice pool matches the ElevenLabs agent's voices. `claude` is the stand-in used for the in-page call.
+// The voice pool matches the ElevenLabs agent's French voices. `claude` is the stand-in used for the in-page call.
 const VOICES = [
-  { id: 'Roger', name: 'Roger · laid-back, resonant (M)', claude: 'rounded|0.94' },
-  { id: 'Jessica', name: 'Jessica · bright, warm (F)', claude: 'airy|1.08' },
-  { id: 'Eric', name: 'Eric · smooth, trustworthy (M)', claude: 'glassy|1' },
-  { id: 'Charlie', name: 'Charlie · confident, Australian (M)', claude: 'buttery|1.1' },
-  { id: 'Chris', name: 'Chris · down-to-earth (M)', claude: 'rounded|1.12' },
-  { id: 'Will', name: 'Will · relaxed, young (M)', claude: 'airy|0.95' },
+  { id: 'Florian', g: 'M', name: 'Florian · grave, posé (H)', claude: 'rounded|0.94' },
+  { id: 'Claire', g: 'F', name: 'Claire · naturelle, spontanée (F)', claude: 'airy|1.05' },
+  { id: 'Guillaume', g: 'M', name: 'Guillaume · décontracté (H)', claude: 'glassy|1' },
+  { id: 'Cecile', g: 'F', name: 'Cécile · calme, élégante (F)', claude: 'buttery|0.95' },
+  { id: 'Thomas', g: 'M', name: 'Thomas · engageant (H)', claude: 'rounded|1.1' },
+  { id: 'Koraly', g: 'F', name: 'Koraly · expressive, vive (F)', claude: 'airy|1.12' },
+  { id: 'Jonathan', g: 'M', name: 'Jonathan · chaud, calme (H)', claude: 'glassy|0.92' },
+  { id: 'Jade', g: 'F', name: 'Jade · structurée, parisienne (F)', claude: 'buttery|1.08' },
+  { id: 'Anthony', g: 'M', name: 'Anthony · franc, énergique (H)', claude: 'rounded|1.15' },
+  { id: 'Lucie', g: 'F', name: 'Lucie · empathique, simple (F)', claude: 'airy|0.95' },
+  { id: 'Timothee', g: 'M', name: 'Timothée · jeune, curieux (H)', claude: 'glassy|1.1' },
+  { id: 'Celine', g: 'F', name: 'Céline · assurée (F)', claude: 'buttery|1' },
 ];
-const CALL_URL = 'https://elevenlabs.io/app/talk-to?agent_id=agent_5401m766zwzme9er7ph90w1326k1';
-const MODERATOR = { id: 'mod', name: 'River', role: 'Moderator', voice: 'River', color: '#c9a961' };
-const DEFAULT_TOPIC = 'How do we take a hotel breakfast check-in app from one Marriott property to a brand-wide standard, and get hotels out of paperwork for good?';
-const DEFAULT_PANEL = [
-  { name: 'Richard Hale', role: 'Veteran Hotel General Manager', persona: '30 years running full-service branded hotels. Thinks in labor hours, guest satisfaction scores and what a tired breakfast supervisor will actually do at 6am. Warm but blunt. Distrusts anything that adds a login.' },
-  { name: 'Sofia Reyes', role: 'B2B SaaS Growth Strategist', persona: 'Scaled two vertical SaaS companies from a single pilot to thousands of locations. Obsessed with the wedge product, land-and-expand and proof metrics. Fast, energetic, always asks "what is the number?"' },
-  { name: 'Daniel Okafor', role: 'Enterprise Sales & Brand Procurement Insider', persona: 'Spent a decade inside a global hotel brand approving vendors, then switched sides. Knows franchise vs. managed dynamics, brand standards, security reviews and how long everything really takes. Calm, precise, politically savvy.' },
-  { name: 'Liam Carter', role: 'Hospitality Tech & Integrations Architect', persona: 'Has built integrations with the major property management and point-of-sale systems. Cares about data flows, uptime at breakfast rush, offline mode and privacy law. Enthusiastic, practical, a bit irreverent.' },
-  { name: 'Marcus Bell', role: 'Skeptical Early-Stage Investor', persona: "Backs vertical software founders and has seen many hotel-tech startups stall. Plays devil's advocate on market size, sales cycle and defensibility. Dry humor, down to earth, respects founders who know their numbers." },
-].map((e, i) => ({ ...e, voice: VOICES[i].id, color: COLORS[i] }));
+const MAX_SEATS = 8;
+const CALL_URL = 'https://elevenlabs.io/app/talk-to?agent_id=agent_4101m767gf2cfm7t7tnhjmgzhy8q';
+const MODERATOR = { id: 'mod', name: 'Camille', role: 'Modératrice', voice: 'Camille', color: '#c9a961' };
 
 let sample = null, tts = null, dictation = null;
-let draft = structuredClone(DEFAULT_PANEL);
-let session = null; // { topic, context, hostName, lang, experts, people, transcript }
+let draft = [];
+let session = null; // { topic, context, hostName, experts, people, transcript }
+const show = (id) => { for (const s of ['talk', 'setup', 'prepScreen', 'call']) $(s).hidden = s !== id; };
 
 // ---------- Capabilities ----------
 
 const ready = (async () => {
   const use = (name) => (window.claude?.use ? window.claude.use(name).catch(() => null) : Promise.resolve(null));
   [sample, tts, dictation] = await Promise.all([use('sample'), use('tts'), use('dictation')]);
-  const badges = $('badges');
-  badges.append(el('span', { className: `badge ${sample ? '' : 'warn'}`, textContent: sample ? 'Experts: Claude, on your plan' : 'Claude is not available in this view' }));
-  badges.append(el('span', { className: `badge ${tts ? '' : 'warn'}`, textContent: tts ? 'Voices: on' : 'Voices off here: captions only' }));
+  $('badges').append(
+    el('span', { className: `badge ${sample ? '' : 'warn'}`, textContent: sample ? 'Claude, sur votre abonnement' : 'Claude indisponible dans cette vue' }),
+    el('span', { className: `badge ${dictation ? '' : 'warn'}`, textContent: dictation ? 'Micro disponible' : 'Micro indisponible ici : écrivez' }));
   $('mic').hidden = !dictation;
-  if (!sample) { $('start').disabled = true; showError('This page needs to be opened in Claude, signed in, to reach the experts.'); }
+  if (!dictation) { $('bigMic').disabled = true; $('bigMicLabel').textContent = 'Micro indisponible'; $('talkHint').textContent = 'Le micro fonctionne dans Chrome et dans l\'application Claude pour ordinateur. Ici, écrivez ci-dessous.'; }
+  if (!sample) { $('compose').disabled = true; talkError('Ouvrez cette page dans Claude, connecté à votre compte, pour composer la table.'); }
   if (tts) tts.onLine(({ id }) => { const item = spoken.get(id); if (item) { setSpeaking(item.id); setCaption(item.id, item.text); $('status').textContent = ''; } });
   if (dictation) wireDictation();
 })();
 
-function showError(text) { $('setupError').textContent = text; $('setupError').hidden = false; }
+function talkError(text) { $('talkError').textContent = text; $('talkError').hidden = !text; }
 
 async function ask(prompt, opts = {}) {
-  // One retry when rate limited; every other failure goes to the caller.
   try { return await sample(prompt, { cache: false, ...opts }); }
   catch (err) {
     if (err?.code !== 'rate_limited' || opts.signal?.aborted) throw err;
@@ -235,57 +267,152 @@ async function ask(prompt, opts = {}) {
   }
 }
 
-// ---------- Setup ----------
+// ---------- 0. Talk: one button, say everything ----------
 
-$('topic').value = DEFAULT_TOPIC;
-for (const [code, name] of Object.entries(LANGS)) $('lang').append(el('option', { value: code, textContent: name }));
-renderDraft();
+// One dictation service feeds two places: the big brief on the first screen, and replies during the call.
+let listening = false;
+let target = null;   // 'brief' | 'call'
+let heard = '';
+function wireDictation() {
+  const field = () => (target === 'brief' ? $('heard') : $('sayText'));
+  let base = '';
+  dictation.onPartial(({ text }) => { field().value = `${base} ${heard} ${text}`.trim(); });
+  dictation.onFinal(({ text }) => { heard = `${heard} ${text}`.trim(); field().value = `${base} ${heard}`.trim(); });
+  dictation.onState(({ state }) => {
+    listening = state === 'listening';
+    $('bigMic').classList.toggle('listening', listening && target === 'brief');
+    $('bigMicLabel').textContent = listening && target === 'brief' ? 'J\'écoute… appuyez pour terminer' : 'Appuyez pour parler';
+    $('mic').classList.toggle('listening', listening && target === 'call');
+    $('mic').textContent = listening && target === 'call' ? 'J\'écoute… appuyez pour envoyer' : 'Parler';
+    if (listening || !heard) return;
+    const text = heard; heard = '';
+    if (target === 'call') { $('sayText').value = ''; runTurn('reply', text); }
+    else { $('talkHint').textContent = 'C\'est noté. Je compose la table…'; compose(); }
+  });
+  const toggle = (which) => () => {
+    if (listening) { dictation.stop().catch(() => {}); return; }
+    target = which; heard = '';
+    base = which === 'brief' ? $('heard').value.trim() : '';
+    if (which === 'call') stopEverything(); // speaking up interrupts the table
+    dictation.start().catch((err) => {
+      const note = 'Le micro n\'est pas disponible. Vous pouvez écrire à la place.';
+      if (which === 'brief') { $('talkHint').textContent = note; if (err?.code === 'not_granted') $('bigMic').disabled = true; }
+      else { $('status').textContent = note; if (err?.code === 'not_granted') $('mic').hidden = true; }
+    });
+  };
+  $('bigMic').addEventListener('click', toggle('brief'));
+  $('mic').addEventListener('click', toggle('call'));
+}
 
+$('compose').addEventListener('click', compose);
+$('manual').addEventListener('click', () => { if (!draft.length) addSeat(); renderDraft(); show('setup'); });
+$('back').addEventListener('click', () => show('talk'));
+
+let composing = false;
+async function compose() {
+  await ready;
+  const brief = $('heard').value.trim();
+  talkError('');
+  if (!brief) return talkError('Dites ou écrivez d\'abord de quoi vous voulez parler.');
+  if (!sample || composing) return;
+  composing = true;
+  $('compose').disabled = true;
+  $('compose').textContent = 'Je compose la table…';
+  try {
+    const out = await ask(composePrompt(brief), { modelTier: 'complex' });
+    const plan = JSON.parse(out.text.slice(out.text.indexOf('{'), out.text.lastIndexOf('}') + 1));
+    $('topic').value = String(plan.sujet || '').trim();
+    $('context').value = String(plan.contexte || '').trim();
+    $('hostName').value = String(plan.hote || '').trim();
+    const free = { M: VOICES.filter((v) => v.g === 'M'), F: VOICES.filter((v) => v.g === 'F') };
+    draft = (plan.participants || []).slice(0, MAX_SEATS).map((p, i) => {
+      const pool = free[p.voix === 'F' ? 'F' : 'M'];
+      const voice = (pool.shift() || free.M.shift() || free.F.shift() || VOICES[i % VOICES.length]).id;
+      return { name: String(p.nom || '').trim(), role: String(p.role || '').trim(), persona: String(p.profil || '').trim(), voice, color: COLORS[i % COLORS.length] };
+    }).filter((p) => p.name);
+    if (!$('topic').value || !draft.length) throw new Error('incomplete');
+    renderDraft();
+    $('talkHint').textContent = '';
+    show('setup');
+  } catch (err) {
+    talkError(err?.code === 'rate_limited' ? 'Claude est momentanément saturé. Réessayez dans quelques secondes.'
+      : 'Je n\'ai pas réussi à composer la table à partir de ce texte. Précisez le sujet et réessayez, ou remplissez à la main.');
+    $('talkHint').textContent = '';
+  }
+  composing = false;
+  $('compose').disabled = false;
+  $('compose').textContent = 'Composer la table';
+}
+
+function composePrompt(brief) {
+  return `Quelqu'un vient de décrire à voix haute la table ronde qu'il veut organiser. Voici la transcription brute de sa dictée, qui peut contenir des erreurs de reconnaissance vocale et des noms propres mal orthographiés :
+
+"""
+${brief}
+"""
+
+Compose la table et réponds uniquement par un objet JSON, sans texte autour, de cette forme :
+{"hote": "...", "sujet": "...", "contexte": "...", "participants": [{"nom": "...", "role": "...", "profil": "...", "voix": "F" ou "M"}]}
+
+- "hote" : le prénom de la personne si elle l'a donné, sinon une chaîne vide.
+- "sujet" : la question centrale de la table ronde, en une phrase claire, en français.
+- "contexte" : ce que la personne a dit d'utile pour les participants (sa situation, ce qu'elle cherche, ses contraintes), en deux ou trois phrases. Chaîne vide s'il n'y a rien.
+- "participants" : entre trois et huit sièges. Reprends d'abord ceux que la personne a demandés, en corrigeant l'orthographe des noms propres connus. Si elle a décrit des rôles sans nommer personne, ou n'a rien précisé, propose les profils les plus utiles pour ce sujet, avec des points de vue qui s'opposent vraiment. Si elle demande plus de huit participants, garde les huit qui pèsent le plus dans le sujet et dis-le dans "contexte".
+- Pour un spécialiste fictif : "nom" est un prénom et un nom plausibles, "role" son métier, "profil" deux ou trois phrases sur son expérience, ses convictions et sa façon de parler.
+- Pour une personnalité publique réelle (responsable politique, dirigeant, auteur) : "nom" vaut « Voix de » suivi du nom de la personne, "role" sa fonction ou son parti, et "profil" explique que ce siège présente les positions publiques connues de cette personne, à la troisième personne, sans jamais prétendre être elle et sans inventer de citation, puis résume en deux phrases ses grandes orientations.
+- Si la personne demande des intervieweurs ou des journalistes, ce sont des spécialistes fictifs dont le rôle est de poser les questions précises et difficiles, avec la même exigence pour tous.
+- "voix" : "F" ou "M", pour choisir une voix féminine ou masculine.`;
+}
+
+// ---------- 1. Review ----------
+
+function addSeat() {
+  const used = new Set(draft.map((e) => e.voice));
+  const voice = (VOICES.find((v) => !used.has(v.id)) || VOICES[0]).id;
+  draft.push({ name: '', role: '', persona: '', voice, color: COLORS[draft.length % COLORS.length] });
+}
 function renderDraft() {
   $('experts').replaceChildren(...draft.map((expert, i) => {
     const field = (label, key, tag = 'input', extra = {}) => {
       const input = el(tag, { id: `x-${key}-${i}`, value: expert[key] || '', ...extra });
       input.addEventListener('input', () => { expert[key] = input.value; });
-      return el('label', {}, label, input);
+      return el('label', { htmlFor: input.id }, label, input);
     };
     const voice = el('select', { id: `x-voice-${i}` });
     for (const v of VOICES) voice.append(el('option', { value: v.id, textContent: v.name, selected: v.id === expert.voice }));
     voice.addEventListener('change', () => { expert.voice = voice.value; });
-    const remove = el('button', { className: 'remove', type: 'button', textContent: 'Remove' });
+    const remove = el('button', { className: 'remove', type: 'button', textContent: 'Retirer' });
     remove.addEventListener('click', () => { draft.splice(i, 1); renderDraft(); });
-    const card = el('div', { className: 'card' }, remove, field('Name', 'name'), field('Role', 'role'),
-      field('Personality and point of view', 'persona', 'textarea', { rows: 4 }), el('label', {}, 'Voice', voice));
+    const card = el('div', { className: 'card' }, remove, field('Nom', 'name'), field('Rôle', 'role'),
+      field('Profil et point de vue', 'persona', 'textarea', { rows: 4 }), el('label', { htmlFor: voice.id }, 'Voix', voice));
     card.style.setProperty('--c', expert.color);
     return card;
   }));
-  $('addExpert').disabled = draft.length >= VOICES.length;
+  $('addExpert').disabled = draft.length >= MAX_SEATS;
 }
-
-$('addExpert').addEventListener('click', () => {
-  draft.push({ name: '', role: '', persona: '', voice: VOICES[draft.length % VOICES.length].id, color: COLORS[draft.length % COLORS.length] });
-  renderDraft();
-});
+$('addExpert').addEventListener('click', () => { addSeat(); renderDraft(); });
 
 $('start').addEventListener('click', async () => {
   await ready;
   const experts = draft.filter((e) => e.name.trim()).map((e, i) => ({ ...e, id: `e${i + 1}`, briefing: '' }));
-  $('setupError').hidden = true;
-  if (!$('topic').value.trim() || !experts.length) return showError('Add a topic and at least one named expert.');
-  const hostName = $('hostName').value.trim() || 'Host';
-  const people = { mod: MODERATOR, host: { name: hostName, role: 'You', color: '#e9ecf3' } };
+  const error = $('setupError');
+  error.hidden = true;
+  if (!$('topic').value.trim() || !experts.length) { error.textContent = 'Il faut un sujet et au moins un participant nommé.'; error.hidden = false; return; }
+  const hostName = $('hostName').value.trim() || 'cher hôte';
+  const people = { mod: MODERATOR, host: { name: $('hostName').value.trim() || 'Vous', role: 'Vous', color: '#e9ecf3' } };
   for (const e of experts) people[e.id] = e;
-  session = { topic: $('topic').value.trim(), context: $('context').value.trim(), hostName, lang: $('lang').value, experts, people, transcript: [] };
+  session = { topic: $('topic').value.trim(), context: $('context').value.trim(), hostName, experts, people, transcript: [] };
   prepare();
 });
 
-// ---------- Prep: every expert prepares at the same time ----------
+// ---------- 2. Prep: every participant prepares at the same time ----------
 
 function prepare() {
-  $('setup').hidden = true;
-  $('prepScreen').hidden = false;
+  show('prepScreen');
+  $('joinRow').hidden = true;
   const cards = {};
   $('prepCards').replaceChildren(...session.experts.map((e) => {
-    const state = el('div', { className: 'state' }, el('span', { className: 'spinner' }), el('span', { textContent: 'Taking a seat' }));
+    const state = el('div', { className: 'state' }, el('span', { className: 'spinner' }), el('span', { textContent: 'S\'installe' }));
     const card = el('div', { className: 'card' }, el('h3', { textContent: e.name }), el('div', { className: 'role', textContent: e.role }), state);
     card.style.setProperty('--c', e.color);
     cards[e.id] = { card, state };
@@ -293,66 +420,58 @@ function prepare() {
   }));
   const jobs = session.experts.map(async (expert, i) => {
     const { card, state } = cards[expert.id];
-    await sleep(i * 500); // stagger the starts a little
-    state.lastChild.textContent = 'Preparing notes';
+    await sleep(i * 500);
+    state.lastChild.textContent = 'Prépare ses notes';
     try {
-      const out = await ask(prepPrompt(expert), { modelTier: 'complex', onText: () => { state.lastChild.textContent = 'Writing notes'; } });
+      const out = await ask(prepPrompt(expert), { modelTier: 'complex', onText: () => { state.lastChild.textContent = 'Rédige ses notes'; } });
       expert.briefing = out.text.trim();
     } catch (err) {
-      expert.briefing = 'No prepared notes. Speak from professional experience and say so when unsure of a number.';
-      card.append(el('div', { className: 'error', textContent: `Could not prepare (${err?.code || 'error'}). Will speak from experience.` }));
+      expert.briefing = 'Pas de notes préparées. Parle à partir de son expérience et signale tout chiffre incertain.';
+      card.append(el('div', { className: 'error', textContent: `Préparation impossible (${err?.code || 'erreur'}). Parlera d'expérience.` }));
     }
     card.classList.add('ready');
-    state.replaceChildren('Ready');
-    card.append(el('details', {}, el('summary', { textContent: 'Prep notes' }), el('pre', { textContent: expert.briefing })));
+    state.replaceChildren('Prêt');
+    card.append(el('details', {}, el('summary', { textContent: 'Notes de préparation' }), el('pre', { textContent: expert.briefing })));
   });
-  Promise.all(jobs).then(() => {
-    $('voiceCall').href = callLink();
-    $('joinRow').hidden = false;
-  });
+  Promise.all(jobs).then(() => { $('voiceCall').href = callLink(); $('joinRow').hidden = false; });
 }
 
-// The ElevenLabs agent reads these as variables: who is hosting, the topic, and each expert with their voice and notes.
+function prepPrompt(expert) {
+  const others = session.experts.filter((e) => e.id !== expert.id).map((e) => `${e.name} (${e.role})`).join(' ; ');
+  return `Tu prépares le siège suivant pour une table ronde en direct : ${expert.name}, ${expert.role}. ${expert.persona}
+
+Rédige les notes privées de ce siège, en français, en texte brut sans mise en forme, en moins de 90 mots au total, avec ces quatre rubriques :
+POSITION : une phrase, tranchée.
+ARGUMENTS : trois faits ou exemples concrets, une ligne courte chacun.
+DÉSACCORD : une ligne sur le point où ce siège s'opposera aux autres.
+QUESTION POUR L'HÔTE : la question dont ce siège a le plus besoin.
+
+Tu ne peux rien vérifier en ligne maintenant : appuie-toi sur ce qui est bien établi et marque « env. » tout chiffre dont tu n'es pas sûr, plutôt que d'inventer une précision. Si le siège est la voix d'une personnalité publique réelle, n'écris que ses positions publiques connues, à la troisième personne, sans citation inventée, et écris « position publique non connue » là où tu ne sais pas. Si le siège est un intervieweur, remplace ARGUMENTS par trois questions précises et difficiles à poser aux autres.
+
+Écris uniquement les notes.
+
+Sujet de la table ronde : ${session.topic}
+${session.context ? `Contexte donné par l'hôte (${session.hostName}) : ${session.context}\n` : ''}Autres participants : ${others || 'aucun'}`;
+}
+
+// The ElevenLabs agent reads these as variables: who is hosting, the topic, and each participant with their voice and notes.
 function callLink() {
   const s = session;
   const clip = (text, max) => (text.length > max ? `${text.slice(0, max).trim()}…` : text);
-  const list = s.experts.map((e) => `${e.name.split(' ')[0]}, ${e.role}`);
+  const list = s.experts.map((e) => `${e.name}, ${e.role}`);
   const vars = {
     host_name: s.hostName,
     topic: s.topic,
-    context: clip(s.context || 'none given', 600),
-    roster: list.length > 1 ? `${list.slice(0, -1).join('; ')}; and ${list[list.length - 1]}` : list[0],
-    table: s.experts.map((e) => `${e.name}, ${e.role}. Voice tag: ${e.voice}. ${clip(e.persona, 260)}\nPrep notes: ${clip(e.briefing.replace(/\s+/g, ' '), 700)}`).join('\n\n'),
+    context: clip(s.context || 'aucun contexte fourni', 600),
+    roster: list.length > 1 ? `${list.slice(0, -1).join(' ; ')} ; et ${list[list.length - 1]}` : list[0],
+    table: s.experts.map((e) => `${e.name}, ${e.role}. Balise de voix : ${e.voice}. ${clip(e.persona, 260)}\nNotes : ${clip(e.briefing.replace(/\s+/g, ' '), 700)}`).join('\n\n'),
   };
   return CALL_URL + Object.entries(vars).map(([k, v]) => `&var_${k}=${encodeURIComponent(v)}`).join('');
 }
 
-function prepPrompt(expert) {
-  const others = session.experts.filter((e) => e.id !== expert.id).map((e) => `${e.name} (${e.role})`).join('; ');
-  return `You are ${expert.name}, ${expert.role}. ${expert.persona}
+$('join').addEventListener('click', () => { show('call'); buildTable(); runTurn('open'); });
 
-You have been invited to a live round-table discussion and are preparing. Work from your own professional angle so you arrive with specific material: real numbers, named examples, hard-won opinions. You cannot look anything up right now, so use what you know well, and mark any figure you are not sure of as "approx." rather than inventing precision.
-
-Write your private prep notes, in plain text with no markdown, under 90 words in total, with these four sections:
-MY POSITION: one sentence, opinionated.
-EVIDENCE: three concrete facts or examples, one short line each.
-WHERE I WILL PUSH BACK: one line on where you expect to disagree with the other panelists.
-QUESTION FOR THE HOST: the one question you most need answered.
-
-Write only the notes.
-
-Round-table topic: ${session.topic}
-${session.context ? `Background from the host (${session.hostName}): ${session.context}\n` : ''}Other panelists: ${others || 'none'}`;
-}
-
-$('join').addEventListener('click', () => {
-  $('prepScreen').hidden = true;
-  $('call').hidden = false;
-  buildTable();
-  runTurn('open');
-});
-
-// ---------- Call ----------
+// ---------- 3. In-page call ----------
 
 const seats = {};
 function buildTable() {
@@ -385,37 +504,38 @@ function logLine(id, text = '') {
 
 function scenePrompt(mode) {
   const s = session;
-  const dossiers = s.experts.map((e) => `@${e.id} — ${e.name}, ${e.role}\nPersonality: ${e.persona}\nTheir private prep notes:\n${e.briefing}`).join('\n\n');
+  const dossiers = s.experts.map((e) => `@${e.id} — ${e.name}, ${e.role}\nProfil : ${e.persona}\nSes notes privées :\n${e.briefing}`).join('\n\n');
   const names = Object.fromEntries(Object.entries(s.people).map(([id, p]) => [id, p.name]));
-  const history = s.transcript.map((t) => `${names[t.id]}: ${t.text}`).join('\n') || '(nothing yet)';
+  const history = s.transcript.map((t) => `${names[t.id]} : ${t.text}`).join('\n') || '(rien encore)';
   const direction = {
-    open: `The call has just connected. @mod welcomes ${s.hostName} and frames the topic in two sentences, then one expert gives the sharpest opening take, then a second expert pushes back on it. Three speakers this turn.`,
-    reply: `${s.hostName} has just spoken. Respond: the most relevant expert answers directly, and a second expert may briefly add or disagree if it sharpens things.`,
-    continue: `${s.hostName} is listening. Continue: one or two experts who have spoken least build on or challenge the last point. The last speaker ends with a pointed question for ${s.hostName}.`,
-    wrap: `${s.hostName} is ending the call. Only @mod speaks: the three takeaways that matter most and the single next step the table would recommend, in under 110 words, then a warm goodbye.`,
+    open: `L'appel vient de commencer. @mod souhaite la bienvenue à ${s.hostName} et pose le sujet en deux phrases, puis un participant donne l'ouverture la plus tranchée, puis un second le contredit. Trois prises de parole pour ce tour.`,
+    reply: `${s.hostName} vient de parler. Réponds : le participant le plus concerné répond directement, et un second peut ajouter ou contredire brièvement si cela éclaire le débat.`,
+    continue: `${s.hostName} écoute. Continue : un ou deux participants qui ont le moins parlé prolongent ou contestent le dernier point. Le dernier termine par une question précise pour ${s.hostName}.`,
+    wrap: `${s.hostName} met fin à l'appel. Seule @mod parle : les trois points à retenir et la prochaine étape que la table recommande, en moins de cent mots, puis un au revoir chaleureux.`,
   }[mode];
-  return `You are writing the live dialogue of a voice round-table. Everything you write is turned into speech immediately, one voice per speaker, and played to the host, ${s.hostName}, who is on the call and can speak at any time.
+  return `Tu écris le dialogue en direct d'une table ronde vocale. Tout ce que tu écris est aussitôt prononcé, une voix par personne, pour l'hôte, ${s.hostName}, qui est en ligne et peut parler à tout moment.
 
-Topic: ${s.topic}
-${s.context ? `Background from the host: ${s.context}\n` : ''}
-At the table:
-@mod — ${MODERATOR.name}, the moderator. Keeps things moving, draws people in, hands the floor to the host. Has no opinions of their own.
+Sujet : ${s.topic}
+${s.context ? `Contexte donné par l'hôte : ${s.context}\n` : ''}
+Autour de la table :
+@mod — ${MODERATOR.name}, la modératrice. Elle distribue la parole, relance, rend la main à l'hôte. Elle n'a pas d'opinion.
 
 ${dossiers}
 
-Output format, which a program parses: a line containing only @id, then that speaker's words on the following lines. Repeat for each speaker in the turn. Nothing else.
+Format de sortie, lu par un programme : une ligne contenant seulement @id, puis les paroles de cette personne sur les lignes suivantes. Répète pour chaque prise de parole du tour. Rien d'autre.
 
-How the conversation should sound:
-- Speak ${LANGS[s.lang]}. This is talk, not writing: contractions, short sentences, no lists, no markdown, no stage directions, no speaker names inside the words.
-- Each speaker says one to three sentences, about 20 to 55 words. A turn has one or two speakers unless the direction says otherwise.
-- Each expert stays in character and argues from their own prep notes: a specific number, a named example, a hard-won opinion. They only cite facts that are in their notes or common knowledge, and say "I'd want to check that" rather than invent one.
-- Experts react to each other and to the host by name, disagree when their views differ, and never repeat a point already made.
-- When the host addresses someone by name, that person answers first. When the host asks a question, answer it directly before adding anything.
+Comment la conversation doit sonner :
+- En français. C'est de l'oral : phrases courtes, pas de listes, pas de mise en forme, pas de didascalies, pas de nom de personne dans les paroles.
+- Chaque prise de parole fait une à trois phrases, vingt à cinquante-cinq mots. Un tour comporte une ou deux prises de parole, sauf indication contraire.
+- Chacun reste dans son rôle et s'appuie sur ses notes : un chiffre, un exemple, une conviction. Personne n'invente de fait : on dit « il faudrait que je vérifie ».
+- Un siège nommé « Voix de » une personnalité réelle présente ses positions publiques à la troisième personne, ne dit jamais « je » à sa place et n'invente aucune citation.
+- Les participants se répondent, s'adressent à l'hôte par son nom, se contredisent quand leurs vues diffèrent et ne répètent pas un point déjà traité.
+- Quand l'hôte s'adresse à quelqu'un par son nom, cette personne répond en premier. Quand l'hôte pose une question, on y répond directement.
 
-Conversation so far:
+Conversation jusqu'ici :
 ${history}
 
-Direction for this turn: ${direction}`;
+Consigne pour ce tour : ${direction}`;
 }
 
 // Split the streamed text into utterances. All but the last are complete; the last is complete once the stream ends.
@@ -423,7 +543,7 @@ function parseUtterances(text, valid) {
   const out = [];
   for (const raw of text.split('\n')) {
     const line = raw.trim();
-    const tag = line.match(/^@([\w-]+):?$/);
+    const tag = line.match(/^@([\w-]+)\s*:?$/);
     if (tag) out.push({ id: valid.has(tag[1]) ? tag[1] : 'mod', text: '' });
     else if (line && !/^@[\w-]*$/.test(line)) {
       if (!out.length) out.push({ id: 'mod', text: '' });
@@ -434,15 +554,14 @@ function parseUtterances(text, valid) {
   return out;
 }
 
-let turn = null;            // the turn in progress
+let turn = null;
 let autoStreak = 0;
 let lineSeq = 0;
-const spoken = new Map();   // tts line id -> utterance, for highlighting the speaker
+const spoken = new Map(); // tts line id -> utterance, for highlighting the speaker
 
 function stopEverything() {
   if (turn) { turn.abort.abort(); turn = null; }
   try { tts?.stop(); } catch { /* nothing was speaking */ }
-  speechSynthesis?.cancel?.();
   setSpeaking(null);
 }
 
@@ -451,7 +570,7 @@ async function runTurn(mode, userText = '') {
   const mine = { abort: new AbortController(), mode, spans: [], sent: 0, speech: Promise.resolve() };
   turn = mine;
   if (userText) { session.transcript.push({ id: 'host', text: userText }); logLine('host', userText); autoStreak = 0; }
-  $('status').textContent = 'The table is thinking…';
+  $('status').textContent = 'La table réfléchit…';
   const valid = new Set(['mod', ...session.experts.map((e) => e.id)]);
   const render = (text, done) => {
     if (turn !== mine) return;
@@ -473,8 +592,8 @@ async function runTurn(mode, userText = '') {
     render(out.text, true);
   } catch (err) {
     if (turn !== mine) return;
-    $('status').textContent = err?.code === 'rate_limited' ? 'Claude is rate limited right now. Wait a few seconds and try again.'
-      : `The table could not answer (${err?.code || err?.message || 'error'}). Try again.`;
+    $('status').textContent = err?.code === 'rate_limited' ? 'Claude est momentanément saturé. Patientez quelques secondes et réessayez.'
+      : `La table n'a pas pu répondre (${err?.code || err?.message || 'erreur'}). Réessayez.`;
     turn = null;
     return;
   }
@@ -482,8 +601,8 @@ async function runTurn(mode, userText = '') {
   if (turn !== mine) return;
   turn = null;
   setSpeaking(null);
-  if (mode === 'wrap') { $('status').textContent = 'Call ended. The transcript is on the right.'; return; }
-  $('status').textContent = 'Your turn. Speak, type, or let them keep going.';
+  if (mode === 'wrap') { $('status').textContent = 'Appel terminé. La transcription est à droite.'; return; }
+  $('status').textContent = 'À vous. Parlez, écrivez, ou laissez-les continuer.';
   if ($('auto').checked && autoStreak < 2) {
     autoStreak++;
     setTimeout(() => { if (!turn && !listening) runTurn('continue'); }, 1200);
@@ -496,7 +615,7 @@ function say(mine, item) {
   if (tts) {
     const id = `l${++lineSeq}`;
     spoken.set(id, item);
-    const done = tts.add([{ text: item.text.slice(0, 1900), voice, rate: Number(rate), language: session.lang, id }]).catch(() => {});
+    const done = tts.add([{ text: item.text.slice(0, 1900), voice, rate: Number(rate), language: 'fr', id }]).catch(() => {});
     mine.speech = Promise.all([mine.speech, done]);
   } else {
     // No voice in this view: show each caption for about as long as it would take to say.
@@ -508,8 +627,6 @@ function say(mine, item) {
   }
 }
 
-// ---------- Host input ----------
-
 $('say').addEventListener('submit', (e) => {
   e.preventDefault();
   const text = $('sayText').value.trim();
@@ -519,28 +636,6 @@ $('say').addEventListener('submit', (e) => {
 });
 $('continue').addEventListener('click', () => { autoStreak = 0; runTurn('continue'); });
 $('end').addEventListener('click', () => { $('auto').checked = false; runTurn('wrap'); });
-
-let listening = false;
-function wireDictation() {
-  let heard = '';
-  dictation.onPartial(({ text }) => { $('sayText').value = `${heard} ${text}`.trim(); });
-  dictation.onFinal(({ text }) => { heard = `${heard} ${text}`.trim(); $('sayText').value = heard; });
-  dictation.onState(({ state }) => {
-    listening = state === 'listening';
-    $('mic').classList.toggle('listening', listening);
-    $('mic').textContent = listening ? 'Listening… tap to send' : 'Speak';
-    if (!listening && heard) { const text = heard; heard = ''; $('sayText').value = ''; runTurn('reply', text); }
-  });
-  $('mic').addEventListener('click', () => {
-    if (listening) { dictation.stop().catch(() => {}); return; }
-    heard = '';
-    stopEverything(); // speaking up interrupts the table
-    dictation.start().catch((err) => {
-      if (err?.code === 'not_granted') $('mic').hidden = true;
-      $('status').textContent = 'The microphone is not available. You can type instead.';
-    });
-  });
-}
 </script>
 </body>
 </html>
