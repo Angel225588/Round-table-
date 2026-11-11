@@ -46,3 +46,8 @@ Sessions live in memory, so restarting the server ends any call in progress.
 ## ElevenLabs voice call
 
 The artifact's prep screen has a "Join the voice call" link. It opens an ElevenLabs agent ("Expert Round Table") and passes the host, topic, invited experts, their voices and their prep notes as dynamic variables (`var_host_name`, `var_topic`, `var_context`, `var_roster`, `var_table`). The agent speaks for every expert, switching voice per speaker, and runs on ElevenLabs credits with no Anthropic key.
+
+## French agents
+
+- "Table ronde (FR)": receives the table from the artifact through dynamic variables.
+- "Table ronde à la voix (FR)": starts by asking the caller for the subject and participants. Its prompt is `elevenlabs/table-ronde-prompt.md`; the researched dossiers in `research/` are inserted into it.

@@ -124,6 +124,8 @@ details pre { white-space: pre-wrap; font: inherit; color: var(--text); margin: 
 .big-mic:disabled .ring { display: none; }
 @keyframes ring { from { transform: scale(1); opacity: .6; } to { transform: scale(1.25); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .big-mic.listening .ring { animation: none; } }
+.voice-alt { display: grid; gap: 8px; justify-items: center; margin: 18px 0 0; color: var(--muted); font-size: 13px; }
+.voice-alt .primary-link { background: transparent; color: var(--gold); font-weight: 650; padding: 10px 18px; }
 .heard-label { text-align: left; margin-top: 18px; }
 .talk .join-row { justify-content: center; }
 </style>
@@ -140,6 +142,7 @@ details pre { white-space: pre-wrap; font: inherit; color: var(--text); margin: 
   <p class="sub">Appuyez et dites tout d'un trait : le sujet, ce qu'il faut savoir, qui vous voulez autour de la table. La table se compose toute seule.</p>
   <button id="bigMic" class="big-mic" type="button"><span class="ring"></span><span id="bigMicLabel">Appuyez pour parler</span></button>
   <p id="talkHint" class="status"></p>
+  <p class="voice-alt"><a id="voiceFirst" class="primary-link" target="_blank" rel="noopener" href="https://elevenlabs.io/app/talk-to?agent_id=agent_6001m767t2v6fts9tt21qjcgkacc">Tout faire à la voix : ouvrir l'appel</a><span>Camille vous demande le sujet et les participants, puis lance la table. Fonctionne aussi sur téléphone.</span></p>
   <label for="heard" class="heard-label">Ce que j'ai entendu <span class="hint">vous pouvez corriger ou écrire ici</span>
     <textarea id="heard" rows="5" placeholder="Exemple : je veux parler de la situation politique en France avant la présidentielle, avec les principaux candidats et trois journalistes qui posent les questions difficiles. Je m'appelle Anthonio."></textarea>
   </label>
@@ -250,7 +253,7 @@ const ready = (async () => {
     el('span', { className: `badge ${sample ? '' : 'warn'}`, textContent: sample ? 'Claude, sur votre abonnement' : 'Claude indisponible dans cette vue' }),
     el('span', { className: `badge ${dictation ? '' : 'warn'}`, textContent: dictation ? 'Micro disponible' : 'Micro indisponible ici : écrivez' }));
   $('mic').hidden = !dictation;
-  if (!dictation) { $('bigMic').disabled = true; $('bigMicLabel').textContent = 'Micro indisponible'; $('talkHint').textContent = 'Le micro fonctionne dans Chrome et dans l\'application Claude pour ordinateur. Ici, écrivez ci-dessous.'; }
+  if (!dictation) { $('bigMic').disabled = true; $('bigMicLabel').textContent = 'Micro indisponible'; $('talkHint').textContent = 'Le micro de cette page ne fonctionne que dans Chrome et dans l\'application Claude pour ordinateur. Ici, ouvrez l\'appel vocal ci-dessous, ou touchez la zone de texte et utilisez le micro de votre clavier.'; }
   if (!sample) { $('compose').disabled = true; talkError('Ouvrez cette page dans Claude, connecté à votre compte, pour composer la table.'); }
   if (tts) tts.onLine(({ id }) => { const item = spoken.get(id); if (item) { setSpeaking(item.id); setCaption(item.id, item.text); $('status').textContent = ''; } });
   if (dictation) wireDictation();
