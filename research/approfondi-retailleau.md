@@ -25,7 +25,7 @@ Aucun programme complet publié en un document unique n'a été trouvé : les po
 - Retraites : 8 députés LR votent la suspension de la réforme [10]. Budget de la Sécurité sociale, 16/12/2025 : 18 pour, 3 contre, 28 abstentions [11].
 - Budget 2026 (49.3, janvier 2026) : Wauquiez écarte la censure ; Retailleau juge le texte « socialiste » sans appeler à censurer [12]. Budget 2027 : Wauquiez refuse « le petit jeu de la censure » [13].
 - Wauquiez : vote blanc lors de la désignation du 19/04/2026 (73,8 % pour Retailleau) ; il avait qualifié les modalités d'« options de boutiquier » [14][15].
-- Lisnard : quitte LR le 25/03/2026 en dénonçant un vote « truqué », candidat le 31/03 [14].
+- Lisnard : dénonce le 25/03/2026 un vote « truqué » sur les modalités de désignation, puis quitte LR et se déclare candidat le 31/03 [14].
 - Primaire : principe accepté le 04/11 ; lettre du 10/11 à Philippe, Attal et Lisnard proposant les 31/01 et 07/02/2027. Le porte-parole de Philippe répond qu'il « ne participera pas à une primaire ». Attal et Lisnard sont favorables au principe ; réponse formelle non confirmée. Aucune réaction de Wauquiez ou de Bertrand trouvée [16][17].
 
 ## 3. DERNIÈRES PRISES DE PAROLE
@@ -53,9 +53,8 @@ Aucune mise en examen ni condamnation n'a été trouvée.
 - État de droit (JDD, fin septembre 2024) : « l'État de droit, ça n'est pas intangible, ni sacré ». Critiques de Yaël Braun-Pivet et Gérald Darmanin. Défense : la source du droit est « le peuple souverain » [29].
 - Émeutes (franceinfo, 05/07/2023) : « une sorte de régression vers les origines ethniques ». La gauche parle de racisme. Réponse : « Je ne regrette rien du tout » [30].
 - Voile (meeting, mars 2025) : « à bas le voile », formule non vérifiée à la source. Défense, le 03/11/2026 : il n'a jamais demandé l'interdiction du voile ; le sport est un « cadre commun » [2].
-- Colonisation (Sud Radio, 2023) : « des heures qui ont été belles », rapporté par la presse réunionnaise et algérienne [31].
+- Colonisation (Sud Radio, 2023) : « des heures qui ont été belles », rapporté par la presse réunionnaise et algérienne, non recoupé auprès d'un grand média national [31].
 - Meurtre d'Aboubakar Cissé (avril 2025) : réaction jugée timide à gauche ; il se rend sur place deux jours après et dénonce une récupération [32].
-- « Intervilles » 1997 : selon « Complément d'enquête » (France 2, 11/06/2026), un témoin anonyme et l'ex-animateur Olivier Chiabodo affirment qu'il était informé d'une triche favorable au Puy du Fou. Aucune procédure ; sa réponse n'a pas été trouvée [33].
 
 ## 6. QUESTIONS
 

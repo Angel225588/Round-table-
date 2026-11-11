@@ -59,7 +59,6 @@ Aucune enquête pénale, mise en examen ou condamnation le visant n'a été trou
 - Millevaches : une cinquantaine d'élus limousins exigent le 29/10 rétractation et excuses ; le maire de Meymac dément tout camp. Démenti du parquet antiterroriste : non confirmé. Aucune réponse de sa part trouvée [19].
 - Cumul AMF et candidature : Marc Fesneau dénonce un « mélange des genres ». Son entourage invoque le précédent Baroin [13][29].
 - Rapport au RN : Fesneau l'accuse de « préparer la grande alliance avec l'extrême droite » (non recoupé) [6].
-- Tribune sur #MeToo (L'Opinion, mai 2024) : comparaison avec la Stasi rapportée par la presse anglophone ; texte non consulté [30].
 - Parrainage accordé à Jean-Luc Mélenchon en 2022 : il dit agir par souci civique, sans soutien politique [31].
 
 ## 6. QUESTIONS
@@ -68,7 +67,7 @@ Aucune enquête pénale, mise en examen ou condamnation le visant n'a été trou
 2. Vous revendiquez 81,7 M€ de dette en moins ; la chambre relève qu'une part vient de transferts à l'agglomération, dont la dette par habitant a doublé depuis 2018 selon l'iFRAP. Quel est le désendettement net ?
 3. La chambre a relevé qu'au Palais des festivals les tarifs votés n'étaient pas appliqués et que la mise en concurrence était imparfaite. Qu'avez-vous corrigé ?
 4. Vous annoncez 100, 200 puis 300 Md€ d'économies selon les discours, sans document chiffré publié. Quel est le chiffre, et où est le détail ?
-5. Vous avez parlé de « camps d'entraînements terroristes » sur le plateau de Millevaches. Sur quelle source, et maintenez-vous ces mots ?
+5. Une cinquantaine d'élus limousins vous demandent de retirer vos propos sur des « camps d'entraînements terroristes » au plateau de Millevaches, et le maire de Meymac dément. Sur quelle source vous appuyiez-vous, et maintenez-vous ces mots ?
 6. Vous briguez un nouveau mandat à l'AMF en annonçant vous mettre en retrait pendant la campagne officielle. Pourquoi solliciter un mandat que vous suspendrez aussitôt ?
 
 ## Sources
