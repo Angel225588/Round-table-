@@ -172,6 +172,7 @@ function logLine(id, text = '') {
 let turn = null;       // { abort, queue, streaming, mode }
 let playing = null;    // { audio } or { synth: true }
 let autoStreak = 0;
+let voiceProblem = null; // set when ElevenLabs rejects a request
 
 function stopEverything() {
   if (turn) { turn.abort.abort(); turn.queue.length = 0; turn = null; }
@@ -224,7 +225,13 @@ function fetchSpeech(id, text, signal) {
   return fetch('/api/tts', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text, voiceId: session.people[id].voiceId }), signal,
-  }).then((r) => (r.ok ? r.blob() : null)).catch(() => null);
+  }).then(async (r) => {
+    if (r.ok) return r.blob();
+    // Fall back to the browser voice, and say why once.
+    const { error, detail = '' } = await r.json().catch(() => ({}));
+    voiceProblem ??= /payment/i.test(detail) ? 'ElevenLabs reports an unpaid invoice on this account' : (error || 'ElevenLabs voice failed');
+    return null;
+  }).catch(() => null);
 }
 
 async function playQueue(mine) {
@@ -246,7 +253,9 @@ async function playQueue(mine) {
   turn = null;
   setSpeaking(null);
   if (mine.mode === 'wrap') { $('status').textContent = 'Call ended. The transcript is on the right.'; return; }
-  $('status').textContent = 'Your turn. Speak, type, or let them keep going.';
+  $('status').textContent = voiceProblem
+    ? `Using the browser voice: ${voiceProblem}.`
+    : 'Your turn. Speak, type, or let them keep going.';
   // Free-flow: the experts carry on by themselves for a couple of rounds, then wait for the host.
   if ($('auto').checked && autoStreak < 2) {
     autoStreak++;
