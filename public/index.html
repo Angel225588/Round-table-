@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Round Table</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot"></span> Round Table</div>
+  <div id="badges"></div>
+</header>
+
+<!-- 1. Setup -->
+<main id="setup" class="screen">
+  <h1>Who's at your table?</h1>
+  <p class="sub">Set the topic, seat your experts, give them time to research. Then join the call and talk to them.</p>
+  <label>Topic
+    <textarea id="topic" rows="2"></textarea>
+  </label>
+  <label>Background the experts should know <span class="hint">optional</span>
+    <textarea id="context" rows="2" placeholder="Where you are today, numbers, constraints, what you've tried…"></textarea>
+  </label>
+  <div class="row">
+    <label>Your name <input id="hostName" placeholder="Host"></label>
+    <label>Language <select id="lang"></select></label>
+    <label>Prep time
+      <select id="prep">
+        <option value="1">1 minute</option><option value="2" selected>2 minutes</option>
+        <option value="3">3 minutes</option><option value="5">5 minutes</option>
+      </select>
+    </label>
+  </div>
+  <div class="section-head">
+    <h2>Experts</h2>
+    <button id="addExpert" class="ghost" type="button">Add a seat</button>
+  </div>
+  <div id="experts" class="cards"></div>
+  <p id="setupError" class="error" hidden></p>
+  <button id="start" class="primary">Send them to prepare</button>
+</main>
+
+<!-- 2. Prep -->
+<main id="prepScreen" class="screen" hidden>
+  <h1>The experts are preparing</h1>
+  <p class="sub" id="prepSub"></p>
+  <div id="prepCards" class="cards"></div>
+  <button id="join" class="primary" disabled>Waiting for the table…</button>
+</main>
+
+<!-- 3. Call -->
+<main id="call" class="screen call" hidden>
+  <section class="stage">
+    <div class="table" id="table">
+      <div class="table-top">
+        <div id="caption" class="caption"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="mic" class="round" title="Speak">Speak</button>
+      <form id="say">
+        <input id="sayText" placeholder="Type to the table, or use Speak…" autocomplete="off">
+        <button class="ghost">Send</button>
+      </form>
+      <button id="continue" class="ghost" type="button" title="Let the experts keep talking">Keep going</button>
+      <label class="toggle"><input type="checkbox" id="auto"> Free-flow</label>
+      <button id="end" class="danger" type="button">Wrap up</button>
+    </div>
+    <p id="status" class="status"></p>
+  </section>
+  <aside class="transcript">
+    <h2>Transcript</h2>
+    <div id="log"></div>
+  </aside>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

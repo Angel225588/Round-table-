@@ -1,0 +1,16 @@
+{
+  "name": "round-table",
+  "version": "1.0.0",
+  "description": "Live voice round table with AI experts who research, then debate with you.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "demo": "DEMO=1 node server.js"
+  },
+  "engines": { "node": ">=20.6" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "express": "^4.21.0"
+  }
+}
