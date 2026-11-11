@@ -56,6 +56,7 @@ button.danger { background: transparent; border-color: var(--danger); color: var
 .card .remove { float: right; padding: 2px 9px; font-size: 12px; color: var(--muted); background: transparent; }
 .card h3 { margin: 0; font-size: 16px; }
 .card .role { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.card .retry { margin-top: 8px; padding: 5px 12px; font-size: 13px; }
 .card .state { font-size: 13px; color: var(--gold); min-height: 20px; display: flex; gap: 8px; align-items: center; }
 .card.ready .state { color: #7fd8a6; }
 .spinner { width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; flex: none; }
@@ -270,11 +271,13 @@ const ready = (async () => {
 function talkError(text) { $('talkError').textContent = text; $('talkError').hidden = !text; }
 
 async function ask(prompt, opts = {}) {
-  try { return await sample(prompt, { cache: false, ...opts }); }
-  catch (err) {
-    if (err?.code !== 'rate_limited' || opts.signal?.aborted) throw err;
-    await sleep(4000);
-    return sample(prompt, { cache: false, ...opts });
+  // When Claude is rate limited, wait and try again a few times before giving up.
+  for (let attempt = 0; ; attempt++) {
+    try { return await sample(prompt, { cache: false, ...opts }); }
+    catch (err) {
+      if (err?.code !== 'rate_limited' || opts.signal?.aborted || attempt >= 3) throw err;
+      await sleep(6000 * (attempt + 1));
+    }
   }
 }
 
@@ -442,22 +445,30 @@ function prepare() {
     cards[e.id] = { card, state };
     return card;
   }));
-  const jobs = session.experts.map(async (expert, i) => {
+  // A full table is eleven seats: prepare three at a time so Claude's rate limit isn't hit.
+  const prepareOne = async (expert) => {
     const { card, state } = cards[expert.id];
-    await sleep(i * 500);
-    state.lastChild.textContent = expert.dossier ? `Lit le dossier de recherche du ${RESEARCH.date}` : 'Prépare ses notes';
+    card.querySelectorAll('.error, details, .retry').forEach((n) => n.remove());
+    card.classList.remove('ready');
+    state.replaceChildren(el('span', { className: 'spinner' }), el('span', { textContent: expert.dossier ? `Lit le dossier de recherche du ${RESEARCH.date}` : 'Prépare ses notes' }));
     try {
       const out = await ask(prepPrompt(expert), { modelTier: 'complex', onText: () => { state.lastChild.textContent = 'Rédige ses notes'; } });
       expert.briefing = out.text.trim();
+      state.replaceChildren('Prêt');
     } catch (err) {
       expert.briefing = 'Pas de notes préparées. Parle à partir de son expérience et signale tout chiffre incertain.';
-      card.append(el('div', { className: 'error', textContent: `Préparation impossible (${err?.code || 'erreur'}). Parlera d'expérience.` }));
+      state.replaceChildren('Sans notes');
+      const retry = el('button', { className: 'ghost retry', type: 'button', textContent: 'Réessayer' });
+      retry.addEventListener('click', async () => { await prepareOne(expert); $('voiceCall').href = callLink(); });
+      card.append(el('div', { className: 'error', textContent: err?.code === 'rate_limited' ? 'Claude était saturé pour ce siège.' : `Préparation impossible (${err?.code || 'erreur'}).` }), retry);
     }
     card.classList.add('ready');
-    state.replaceChildren('Prêt');
     card.append(el('details', {}, el('summary', { textContent: 'Notes de préparation' }), el('pre', { textContent: expert.briefing })));
-  });
-  Promise.all(jobs).then(() => { $('voiceCall').href = callLink(); $('joinRow').hidden = false; });
+  };
+  const queue = [...session.experts];
+  for (const e of queue) cards[e.id].state.lastChild.textContent = 'Attend son tour';
+  const worker = async () => { for (let e; (e = queue.shift());) await prepareOne(e); };
+  Promise.all([worker(), worker(), worker()]).then(() => { $('voiceCall').href = callLink(); $('joinRow').hidden = false; });
 }
 
 function prepPrompt(expert) {
