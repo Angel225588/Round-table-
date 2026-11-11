@@ -40,8 +40,13 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outl
 
 button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); color: var(--text); background: var(--panel-2); padding: 9px 16px; }
 button:disabled { opacity: .5; cursor: default; }
-button.primary { background: var(--gold); border-color: var(--gold); color: #1a1508; font-weight: 650; padding: 12px 22px; margin-top: 22px; }
+button.primary, .primary-link { background: var(--gold); border-color: var(--gold); color: #1a1508; font-weight: 650; padding: 12px 22px; margin-top: 22px; }
 button.ghost { background: transparent; }
+.primary-link { display: inline-block; text-decoration: none; border-radius: 8px; border: 1px solid var(--gold); }
+.join-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
+.join-row .primary-link, .join-row button { margin-top: 0; }
+.join-row .sub { flex-basis: 100%; margin: 0; font-size: 13px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 button.danger { background: transparent; border-color: var(--danger); color: var(--danger); }
 .error { color: var(--danger); }
 
@@ -140,7 +145,11 @@ details pre { white-space: pre-wrap; font: inherit; color: var(--text); margin: 
   <h1>The experts are preparing</h1>
   <p class="sub">Each expert is writing their own notes at the same time. Open a card to read them.</p>
   <div id="prepCards" class="cards"></div>
-  <button id="join" class="primary" disabled>Waiting for the table…</button>
+  <div id="joinRow" class="join-row" hidden>
+    <a id="voiceCall" class="primary-link" target="_blank" rel="noopener">Join the voice call</a>
+    <button id="join" class="ghost" type="button">Stay here with Claude's voices</button>
+    <p class="sub">The voice call opens ElevenLabs in a new tab with this table, its notes and the expert voices. It uses your ElevenLabs credits.</p>
+  </div>
 </main>
 
 <!-- 3. Call -->
@@ -176,14 +185,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const COLORS = ['#6ea8fe', '#f58fb0', '#7fd8a6', '#f2a65a', '#b79cf7', '#5fd0d6', '#e8d26a', '#ef8a7a'];
 const LANGS = { en: 'English', es: 'Spanish', fr: 'French' };
-// Claude has four voices; pace is varied too so six people at the table stay distinguishable.
+// The voice pool matches the ElevenLabs agent's voices. `claude` is the stand-in used for the in-page call.
 const VOICES = [
-  { id: 'rounded|0.94', name: 'Rounded, measured' }, { id: 'airy|1.08', name: 'Airy, quick' },
-  { id: 'glassy|1', name: 'Glassy, even' }, { id: 'buttery|1.1', name: 'Buttery, brisk' },
-  { id: 'rounded|1.12', name: 'Rounded, brisk' }, { id: 'airy|0.95', name: 'Airy, calm' },
-  { id: 'glassy|1.12', name: 'Glassy, quick' }, { id: 'buttery|1', name: 'Buttery, even' },
+  { id: 'Roger', name: 'Roger · laid-back, resonant (M)', claude: 'rounded|0.94' },
+  { id: 'Jessica', name: 'Jessica · bright, warm (F)', claude: 'airy|1.08' },
+  { id: 'Eric', name: 'Eric · smooth, trustworthy (M)', claude: 'glassy|1' },
+  { id: 'Charlie', name: 'Charlie · confident, Australian (M)', claude: 'buttery|1.1' },
+  { id: 'Chris', name: 'Chris · down-to-earth (M)', claude: 'rounded|1.12' },
+  { id: 'Will', name: 'Will · relaxed, young (M)', claude: 'airy|0.95' },
 ];
-const MODERATOR = { id: 'mod', name: 'River', role: 'Moderator', voice: 'buttery|1', color: '#c9a961' };
+const CALL_URL = 'https://elevenlabs.io/app/talk-to?agent_id=agent_5401m766zwzme9er7ph90w1326k1';
+const MODERATOR = { id: 'mod', name: 'River', role: 'Moderator', voice: 'River', color: '#c9a961' };
 const DEFAULT_TOPIC = 'How do we take a hotel breakfast check-in app from one Marriott property to a brand-wide standard, and get hotels out of paperwork for good?';
 const DEFAULT_PANEL = [
   { name: 'Richard Hale', role: 'Veteran Hotel General Manager', persona: '30 years running full-service branded hotels. Thinks in labor hours, guest satisfaction scores and what a tired breakfast supervisor will actually do at 6am. Warm but blunt. Distrusts anything that adds a login.' },
@@ -246,7 +258,7 @@ function renderDraft() {
     card.style.setProperty('--c', expert.color);
     return card;
   }));
-  $('addExpert').disabled = draft.length >= 8;
+  $('addExpert').disabled = draft.length >= VOICES.length;
 }
 
 $('addExpert').addEventListener('click', () => {
@@ -294,7 +306,25 @@ function prepare() {
     state.replaceChildren('Ready');
     card.append(el('details', {}, el('summary', { textContent: 'Prep notes' }), el('pre', { textContent: expert.briefing })));
   });
-  Promise.all(jobs).then(() => { $('join').disabled = false; $('join').textContent = 'Join the call'; });
+  Promise.all(jobs).then(() => {
+    $('voiceCall').href = callLink();
+    $('joinRow').hidden = false;
+  });
+}
+
+// The ElevenLabs agent reads these as variables: who is hosting, the topic, and each expert with their voice and notes.
+function callLink() {
+  const s = session;
+  const clip = (text, max) => (text.length > max ? `${text.slice(0, max).trim()}…` : text);
+  const list = s.experts.map((e) => `${e.name.split(' ')[0]}, ${e.role}`);
+  const vars = {
+    host_name: s.hostName,
+    topic: s.topic,
+    context: clip(s.context || 'none given', 600),
+    roster: list.length > 1 ? `${list.slice(0, -1).join('; ')}; and ${list[list.length - 1]}` : list[0],
+    table: s.experts.map((e) => `${e.name}, ${e.role}. Voice tag: ${e.voice}. ${clip(e.persona, 260)}\nPrep notes: ${clip(e.briefing.replace(/\s+/g, ' '), 700)}`).join('\n\n'),
+  };
+  return CALL_URL + Object.entries(vars).map(([k, v]) => `&var_${k}=${encodeURIComponent(v)}`).join('');
 }
 
 function prepPrompt(expert) {
@@ -303,9 +333,9 @@ function prepPrompt(expert) {
 
 You have been invited to a live round-table discussion and are preparing. Work from your own professional angle so you arrive with specific material: real numbers, named examples, hard-won opinions. You cannot look anything up right now, so use what you know well, and mark any figure you are not sure of as "approx." rather than inventing precision.
 
-Write your private prep notes, in plain text with no markdown, under 280 words, with these four sections:
-MY POSITION: two sentences, opinionated.
-EVIDENCE: four to six concrete facts or examples.
+Write your private prep notes, in plain text with no markdown, under 90 words in total, with these four sections:
+MY POSITION: one sentence, opinionated.
+EVIDENCE: three concrete facts or examples, one short line each.
 WHERE I WILL PUSH BACK: one line on where you expect to disagree with the other panelists.
 QUESTION FOR THE HOST: the one question you most need answered.
 
@@ -462,7 +492,7 @@ async function runTurn(mode, userText = '') {
 
 // Queue one utterance for speech. Lines play in order; the chain resolves when the last one has been heard.
 function say(mine, item) {
-  const [voice, rate] = session.people[item.id].voice.split('|');
+  const [voice, rate] = (VOICES.find((v) => v.id === session.people[item.id].voice)?.claude || 'buttery|1').split('|');
   if (tts) {
     const id = `l${++lineSeq}`;
     spoken.set(id, item);

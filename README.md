@@ -42,3 +42,7 @@ Sessions live in memory, so restarting the server ends any call in progress.
 ## Artifact version
 
 `artifact/index.html` is the same app as one self-contained page for a Claude artifact. It needs no keys: the experts run on the viewer's Claude plan, with Claude's built-in voices and dictation. It has no web search, so experts prepare from what Claude knows, and it does not use ElevenLabs.
+
+## ElevenLabs voice call
+
+The artifact's prep screen has a "Join the voice call" link. It opens an ElevenLabs agent ("Expert Round Table") and passes the host, topic, invited experts, their voices and their prep notes as dynamic variables (`var_host_name`, `var_topic`, `var_context`, `var_roster`, `var_table`). The agent speaks for every expert, switching voice per speaker, and runs on ElevenLabs credits with no Anthropic key.
