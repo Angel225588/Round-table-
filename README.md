@@ -38,3 +38,7 @@ Optional, in `.env`:
 - `public/`: the three screens.
 
 Sessions live in memory, so restarting the server ends any call in progress.
+
+## Artifact version
+
+`artifact/index.html` is the same app as one self-contained page for a Claude artifact. It needs no keys: the experts run on the viewer's Claude plan, with Claude's built-in voices and dictation. It has no web search, so experts prepare from what Claude knows, and it does not use ElevenLabs.

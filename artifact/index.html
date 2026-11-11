@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expert Round Table</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: one dark room. Setup form, then prep cards, then a round table with the transcript beside it. */
+:root {
+  --bg: #0d1017; --panel: #161b26; --panel-2: #1d2432; --line: #2a3345;
+  --text: #e9ecf3; --muted: #8e99b0; --gold: #c9a961; --danger: #e5697b;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif; }
+h1, .brand { font-family: "Fraunces", Georgia, serif; font-weight: 600; }
+h1 { text-wrap: balance; }
+[hidden] { display: none !important; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 650; letter-spacing: .02em; display: flex; align-items: center; gap: 10px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--gold); }
+#badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge { font-size: 12px; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.badge.warn { color: var(--gold); border-color: var(--gold); }
+
+.screen { max-width: 980px; margin: 0 auto; padding: 32px 24px 64px; }
+h1 { font-size: 28px; margin: 0 0 6px; }
+h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.sub { color: var(--muted); margin: 0 0 24px; }
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.hint { opacity: .6; margin-left: 6px; }
+input, textarea, select {
+  width: 100%; margin-top: 6px; padding: 10px 12px; font: inherit; color: var(--text);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; resize: vertical;
+}
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+.row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin: 14px 0 12px; }
+
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); color: var(--text); background: var(--panel-2); padding: 9px 16px; }
+button:disabled { opacity: .5; cursor: default; }
+button.primary { background: var(--gold); border-color: var(--gold); color: #1a1508; font-weight: 650; padding: 12px 22px; margin-top: 22px; }
+button.ghost { background: transparent; }
+button.danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.error { color: var(--danger); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--c, var(--gold)); border-radius: 10px; padding: 14px; }
+.card label { margin-bottom: 8px; }
+.card .remove { float: right; padding: 2px 9px; font-size: 12px; color: var(--muted); background: transparent; }
+.card h3 { margin: 0; font-size: 16px; }
+.card .role { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.card .state { font-size: 13px; color: var(--gold); min-height: 20px; display: flex; gap: 8px; align-items: center; }
+.card.ready .state { color: #7fd8a6; }
+.spinner { width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+details { margin-top: 10px; font-size: 13px; }
+details summary { cursor: pointer; color: var(--muted); }
+details pre { white-space: pre-wrap; font: inherit; color: var(--text); margin: 8px 0 0; max-height: 260px; overflow: auto; }
+
+/* Call */
+.call { max-width: 1280px; display: grid; grid-template-columns: 1fr 340px; gap: 24px; padding-top: 20px; }
+.table { position: relative; width: min(100%, 640px); aspect-ratio: 1 / .82; margin: 0 auto 18px; }
+.table-top {
+  position: absolute; inset: 27% 21%; border-radius: 50%; display: grid; place-items: center; padding: 8%;
+  background: radial-gradient(ellipse at 50% 35%, #2a3246, #171c28 70%); border: 1px solid var(--line);
+  box-shadow: 0 24px 60px #0008, inset 0 0 0 6px #10141d;
+}
+.caption { text-align: center; font-size: 15px; line-height: 1.45; max-height: 100%; overflow: hidden; }
+.caption small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.seat { position: absolute; width: 104px; margin: -40px 0 0 -52px; text-align: center; transition: transform .25s; }
+.avatar {
+  width: 58px; height: 58px; margin: 0 auto 5px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 700; font-size: 18px; color: #10141d; background: var(--c); box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--line);
+}
+.seat .name { font-size: 12.5px; font-weight: 600; line-height: 1.2; }
+.seat .role { font-size: 10.5px; color: var(--muted); line-height: 1.25; }
+.seat.speaking { transform: scale(1.1); }
+.seat.speaking .avatar { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--c), 0 0 26px 4px var(--c); animation: pulse 1.1s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--c), 0 0 40px 10px var(--c); } }
+@media (prefers-reduced-motion: reduce) { .seat.speaking .avatar, .spinner { animation: none; } }
+
+.controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.controls form { display: flex; gap: 8px; flex: 1 1 260px; }
+.controls input[type=text], .controls #sayText { margin: 0; }
+.round { border-radius: 99px; padding: 12px 22px; background: var(--gold); border-color: var(--gold); color: #1a1508; font-weight: 650; }
+.round.listening { background: var(--danger); border-color: var(--danger); color: #fff; }
+.toggle { display: flex; align-items: center; gap: 6px; margin: 0; white-space: nowrap; }
+.toggle input { width: auto; margin: 0; }
+.status { text-align: center; color: var(--muted); font-size: 13px; min-height: 20px; margin: 12px 0 0; }
+
+.transcript { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; height: 640px; display: flex; flex-direction: column; position: sticky; top: 16px; }
+#log { overflow-y: auto; flex: 1; margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
+.line b { display: block; font-size: 12px; color: var(--c, var(--muted)); }
+.line.host { text-align: right; }
+.line span { color: var(--text); font-size: 14px; }
+
+@media (max-width: 900px) {
+  .call { grid-template-columns: 1fr; }
+  .transcript { height: 320px; position: static; }
+  .row { grid-template-columns: 1fr; }
+  .seat { width: 84px; margin-left: -42px; }
+  .avatar { width: 46px; height: 46px; font-size: 15px; }
+  .seat .role { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot"></span> Round Table</div>
+  <div id="badges"></div>
+</header>
+
+<!-- 1. Setup -->
+<main id="setup" class="screen">
+  <h1>Who's at your table?</h1>
+  <p class="sub">Set the topic, seat your experts, let them prepare. Then join the call and talk to them.</p>
+  <label>Topic
+    <textarea id="topic" rows="2"></textarea>
+  </label>
+  <label>Background the experts should know <span class="hint">optional</span>
+    <textarea id="context" rows="2" placeholder="Where you are today, numbers, constraints, what you've tried…"></textarea>
+  </label>
+  <div class="row">
+    <label>Your name <input id="hostName" placeholder="Host"></label>
+    <label>Language <select id="lang"></select></label>
+  </div>
+  <div class="section-head">
+    <h2>Experts</h2>
+    <button id="addExpert" class="ghost" type="button">Add a seat</button>
+  </div>
+  <div id="experts" class="cards"></div>
+  <p id="setupError" class="error" hidden></p>
+  <button id="start" class="primary">Send them to prepare</button>
+</main>
+
+<!-- 2. Prep -->
+<main id="prepScreen" class="screen" hidden>
+  <h1>The experts are preparing</h1>
+  <p class="sub">Each expert is writing their own notes at the same time. Open a card to read them.</p>
+  <div id="prepCards" class="cards"></div>
+  <button id="join" class="primary" disabled>Waiting for the table…</button>
+</main>
+
+<!-- 3. Call -->
+<main id="call" class="screen call" hidden>
+  <section class="stage">
+    <div class="table" id="table">
+      <div class="table-top">
+        <div id="caption" class="caption"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="mic" class="round" title="Speak">Speak</button>
+      <form id="say">
+        <input id="sayText" placeholder="Say something to the table…" autocomplete="off">
+        <button class="ghost">Send</button>
+      </form>
+      <button id="continue" class="ghost" type="button" title="Let the experts keep talking">Keep going</button>
+      <label class="toggle"><input type="checkbox" id="auto"> Free-flow</label>
+      <button id="end" class="danger" type="button">Wrap up</button>
+    </div>
+    <p id="status" class="status"></p>
+  </section>
+  <aside class="transcript">
+    <h2>Transcript</h2>
+    <div id="log"></div>
+  </aside>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+const COLORS = ['#6ea8fe', '#f58fb0', '#7fd8a6', '#f2a65a', '#b79cf7', '#5fd0d6', '#e8d26a', '#ef8a7a'];
+const LANGS = { en: 'English', es: 'Spanish', fr: 'French' };
+// Claude has four voices; pace is varied too so six people at the table stay distinguishable.
+const VOICES = [
+  { id: 'rounded|0.94', name: 'Rounded, measured' }, { id: 'airy|1.08', name: 'Airy, quick' },
+  { id: 'glassy|1', name: 'Glassy, even' }, { id: 'buttery|1.1', name: 'Buttery, brisk' },
+  { id: 'rounded|1.12', name: 'Rounded, brisk' }, { id: 'airy|0.95', name: 'Airy, calm' },
+  { id: 'glassy|1.12', name: 'Glassy, quick' }, { id: 'buttery|1', name: 'Buttery, even' },
+];
+const MODERATOR = { id: 'mod', name: 'River', role: 'Moderator', voice: 'buttery|1', color: '#c9a961' };
+const DEFAULT_TOPIC = 'How do we take a hotel breakfast check-in app from one Marriott property to a brand-wide standard, and get hotels out of paperwork for good?';
+const DEFAULT_PANEL = [
+  { name: 'Richard Hale', role: 'Veteran Hotel General Manager', persona: '30 years running full-service branded hotels. Thinks in labor hours, guest satisfaction scores and what a tired breakfast supervisor will actually do at 6am. Warm but blunt. Distrusts anything that adds a login.' },
+  { name: 'Sofia Reyes', role: 'B2B SaaS Growth Strategist', persona: 'Scaled two vertical SaaS companies from a single pilot to thousands of locations. Obsessed with the wedge product, land-and-expand and proof metrics. Fast, energetic, always asks "what is the number?"' },
+  { name: 'Daniel Okafor', role: 'Enterprise Sales & Brand Procurement Insider', persona: 'Spent a decade inside a global hotel brand approving vendors, then switched sides. Knows franchise vs. managed dynamics, brand standards, security reviews and how long everything really takes. Calm, precise, politically savvy.' },
+  { name: 'Liam Carter', role: 'Hospitality Tech & Integrations Architect', persona: 'Has built integrations with the major property management and point-of-sale systems. Cares about data flows, uptime at breakfast rush, offline mode and privacy law. Enthusiastic, practical, a bit irreverent.' },
+  { name: 'Marcus Bell', role: 'Skeptical Early-Stage Investor', persona: "Backs vertical software founders and has seen many hotel-tech startups stall. Plays devil's advocate on market size, sales cycle and defensibility. Dry humor, down to earth, respects founders who know their numbers." },
+].map((e, i) => ({ ...e, voice: VOICES[i].id, color: COLORS[i] }));
+
+let sample = null, tts = null, dictation = null;
+let draft = structuredClone(DEFAULT_PANEL);
+let session = null; // { topic, context, hostName, lang, experts, people, transcript }
+
+// ---------- Capabilities ----------
+
+const ready = (async () => {
+  const use = (name) => (window.claude?.use ? window.claude.use(name).catch(() => null) : Promise.resolve(null));
+  [sample, tts, dictation] = await Promise.all([use('sample'), use('tts'), use('dictation')]);
+  const badges = $('badges');
+  badges.append(el('span', { className: `badge ${sample ? '' : 'warn'}`, textContent: sample ? 'Experts: Claude, on your plan' : 'Claude is not available in this view' }));
+  badges.append(el('span', { className: `badge ${tts ? '' : 'warn'}`, textContent: tts ? 'Voices: on' : 'Voices off here: captions only' }));
+  $('mic').hidden = !dictation;
+  if (!sample) { $('start').disabled = true; showError('This page needs to be opened in Claude, signed in, to reach the experts.'); }
+  if (tts) tts.onLine(({ id }) => { const item = spoken.get(id); if (item) { setSpeaking(item.id); setCaption(item.id, item.text); $('status').textContent = ''; } });
+  if (dictation) wireDictation();
+})();
+
+function showError(text) { $('setupError').textContent = text; $('setupError').hidden = false; }
+
+async function ask(prompt, opts = {}) {
+  // One retry when rate limited; every other failure goes to the caller.
+  try { return await sample(prompt, { cache: false, ...opts }); }
+  catch (err) {
+    if (err?.code !== 'rate_limited' || opts.signal?.aborted) throw err;
+    await sleep(4000);
+    return sample(prompt, { cache: false, ...opts });
+  }
+}
+
+// ---------- Setup ----------
+
+$('topic').value = DEFAULT_TOPIC;
+for (const [code, name] of Object.entries(LANGS)) $('lang').append(el('option', { value: code, textContent: name }));
+renderDraft();
+
+function renderDraft() {
+  $('experts').replaceChildren(...draft.map((expert, i) => {
+    const field = (label, key, tag = 'input', extra = {}) => {
+      const input = el(tag, { id: `x-${key}-${i}`, value: expert[key] || '', ...extra });
+      input.addEventListener('input', () => { expert[key] = input.value; });
+      return el('label', {}, label, input);
+    };
+    const voice = el('select', { id: `x-voice-${i}` });
+    for (const v of VOICES) voice.append(el('option', { value: v.id, textContent: v.name, selected: v.id === expert.voice }));
+    voice.addEventListener('change', () => { expert.voice = voice.value; });
+    const remove = el('button', { className: 'remove', type: 'button', textContent: 'Remove' });
+    remove.addEventListener('click', () => { draft.splice(i, 1); renderDraft(); });
+    const card = el('div', { className: 'card' }, remove, field('Name', 'name'), field('Role', 'role'),
+      field('Personality and point of view', 'persona', 'textarea', { rows: 4 }), el('label', {}, 'Voice', voice));
+    card.style.setProperty('--c', expert.color);
+    return card;
+  }));
+  $('addExpert').disabled = draft.length >= 8;
+}
+
+$('addExpert').addEventListener('click', () => {
+  draft.push({ name: '', role: '', persona: '', voice: VOICES[draft.length % VOICES.length].id, color: COLORS[draft.length % COLORS.length] });
+  renderDraft();
+});
+
+$('start').addEventListener('click', async () => {
+  await ready;
+  const experts = draft.filter((e) => e.name.trim()).map((e, i) => ({ ...e, id: `e${i + 1}`, briefing: '' }));
+  $('setupError').hidden = true;
+  if (!$('topic').value.trim() || !experts.length) return showError('Add a topic and at least one named expert.');
+  const hostName = $('hostName').value.trim() || 'Host';
+  const people = { mod: MODERATOR, host: { name: hostName, role: 'You', color: '#e9ecf3' } };
+  for (const e of experts) people[e.id] = e;
+  session = { topic: $('topic').value.trim(), context: $('context').value.trim(), hostName, lang: $('lang').value, experts, people, transcript: [] };
+  prepare();
+});
+
+// ---------- Prep: every expert prepares at the same time ----------
+
+function prepare() {
+  $('setup').hidden = true;
+  $('prepScreen').hidden = false;
+  const cards = {};
+  $('prepCards').replaceChildren(...session.experts.map((e) => {
+    const state = el('div', { className: 'state' }, el('span', { className: 'spinner' }), el('span', { textContent: 'Taking a seat' }));
+    const card = el('div', { className: 'card' }, el('h3', { textContent: e.name }), el('div', { className: 'role', textContent: e.role }), state);
+    card.style.setProperty('--c', e.color);
+    cards[e.id] = { card, state };
+    return card;
+  }));
+  const jobs = session.experts.map(async (expert, i) => {
+    const { card, state } = cards[expert.id];
+    await sleep(i * 500); // stagger the starts a little
+    state.lastChild.textContent = 'Preparing notes';
+    try {
+      const out = await ask(prepPrompt(expert), { modelTier: 'complex', onText: () => { state.lastChild.textContent = 'Writing notes'; } });
+      expert.briefing = out.text.trim();
+    } catch (err) {
+      expert.briefing = 'No prepared notes. Speak from professional experience and say so when unsure of a number.';
+      card.append(el('div', { className: 'error', textContent: `Could not prepare (${err?.code || 'error'}). Will speak from experience.` }));
+    }
+    card.classList.add('ready');
+    state.replaceChildren('Ready');
+    card.append(el('details', {}, el('summary', { textContent: 'Prep notes' }), el('pre', { textContent: expert.briefing })));
+  });
+  Promise.all(jobs).then(() => { $('join').disabled = false; $('join').textContent = 'Join the call'; });
+}
+
+function prepPrompt(expert) {
+  const others = session.experts.filter((e) => e.id !== expert.id).map((e) => `${e.name} (${e.role})`).join('; ');
+  return `You are ${expert.name}, ${expert.role}. ${expert.persona}
+
+You have been invited to a live round-table discussion and are preparing. Work from your own professional angle so you arrive with specific material: real numbers, named examples, hard-won opinions. You cannot look anything up right now, so use what you know well, and mark any figure you are not sure of as "approx." rather than inventing precision.
+
+Write your private prep notes, in plain text with no markdown, under 280 words, with these four sections:
+MY POSITION: two sentences, opinionated.
+EVIDENCE: four to six concrete facts or examples.
+WHERE I WILL PUSH BACK: one line on where you expect to disagree with the other panelists.
+QUESTION FOR THE HOST: the one question you most need answered.
+
+Write only the notes.
+
+Round-table topic: ${session.topic}
+${session.context ? `Background from the host (${session.hostName}): ${session.context}\n` : ''}Other panelists: ${others || 'none'}`;
+}
+
+$('join').addEventListener('click', () => {
+  $('prepScreen').hidden = true;
+  $('call').hidden = false;
+  buildTable();
+  runTurn('open');
+});
+
+// ---------- Call ----------
+
+const seats = {};
+function buildTable() {
+  const order = ['mod', ...session.experts.map((e) => e.id)];
+  const total = order.length + 1;
+  const place = (id, slot) => {
+    const person = session.people[id];
+    const angle = Math.PI / 2 + (2 * Math.PI * slot) / total;
+    const seat = el('div', { className: 'seat' }, el('div', { className: 'avatar', textContent: initials(person.name) }),
+      el('div', { className: 'name', textContent: person.name }), el('div', { className: 'role', textContent: person.role }));
+    seat.style.left = `${50 + 44 * Math.cos(angle)}%`;
+    seat.style.top = `${50 + 41 * Math.sin(angle)}%`;
+    seat.style.setProperty('--c', person.color);
+    $('table').append(seat);
+    seats[id] = seat;
+  };
+  place('host', 0);
+  order.forEach((id, i) => place(id, i + 1));
+}
+function setSpeaking(id) { for (const [key, seat] of Object.entries(seats)) seat.classList.toggle('speaking', key === id); }
+function setCaption(id, text) { $('caption').replaceChildren(el('small', { textContent: session.people[id].name }), text); }
+function logLine(id, text = '') {
+  const span = el('span', { textContent: text });
+  const line = el('div', { className: `line ${id === 'host' ? 'host' : ''}` }, el('b', { textContent: session.people[id].name }), span);
+  line.style.setProperty('--c', session.people[id].color);
+  $('log').append(line);
+  $('log').scrollTop = $('log').scrollHeight;
+  return span;
+}
+
+function scenePrompt(mode) {
+  const s = session;
+  const dossiers = s.experts.map((e) => `@${e.id} — ${e.name}, ${e.role}\nPersonality: ${e.persona}\nTheir private prep notes:\n${e.briefing}`).join('\n\n');
+  const names = Object.fromEntries(Object.entries(s.people).map(([id, p]) => [id, p.name]));
+  const history = s.transcript.map((t) => `${names[t.id]}: ${t.text}`).join('\n') || '(nothing yet)';
+  const direction = {
+    open: `The call has just connected. @mod welcomes ${s.hostName} and frames the topic in two sentences, then one expert gives the sharpest opening take, then a second expert pushes back on it. Three speakers this turn.`,
+    reply: `${s.hostName} has just spoken. Respond: the most relevant expert answers directly, and a second expert may briefly add or disagree if it sharpens things.`,
+    continue: `${s.hostName} is listening. Continue: one or two experts who have spoken least build on or challenge the last point. The last speaker ends with a pointed question for ${s.hostName}.`,
+    wrap: `${s.hostName} is ending the call. Only @mod speaks: the three takeaways that matter most and the single next step the table would recommend, in under 110 words, then a warm goodbye.`,
+  }[mode];
+  return `You are writing the live dialogue of a voice round-table. Everything you write is turned into speech immediately, one voice per speaker, and played to the host, ${s.hostName}, who is on the call and can speak at any time.
+
+Topic: ${s.topic}
+${s.context ? `Background from the host: ${s.context}\n` : ''}
+At the table:
+@mod — ${MODERATOR.name}, the moderator. Keeps things moving, draws people in, hands the floor to the host. Has no opinions of their own.
+
+${dossiers}
+
+Output format, which a program parses: a line containing only @id, then that speaker's words on the following lines. Repeat for each speaker in the turn. Nothing else.
+
+How the conversation should sound:
+- Speak ${LANGS[s.lang]}. This is talk, not writing: contractions, short sentences, no lists, no markdown, no stage directions, no speaker names inside the words.
+- Each speaker says one to three sentences, about 20 to 55 words. A turn has one or two speakers unless the direction says otherwise.
+- Each expert stays in character and argues from their own prep notes: a specific number, a named example, a hard-won opinion. They only cite facts that are in their notes or common knowledge, and say "I'd want to check that" rather than invent one.
+- Experts react to each other and to the host by name, disagree when their views differ, and never repeat a point already made.
+- When the host addresses someone by name, that person answers first. When the host asks a question, answer it directly before adding anything.
+
+Conversation so far:
+${history}
+
+Direction for this turn: ${direction}`;
+}
+
+// Split the streamed text into utterances. All but the last are complete; the last is complete once the stream ends.
+function parseUtterances(text, valid) {
+  const out = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    const tag = line.match(/^@([\w-]+):?$/);
+    if (tag) out.push({ id: valid.has(tag[1]) ? tag[1] : 'mod', text: '' });
+    else if (line && !/^@[\w-]*$/.test(line)) {
+      if (!out.length) out.push({ id: 'mod', text: '' });
+      const last = out[out.length - 1];
+      last.text += (last.text ? ' ' : '') + line;
+    }
+  }
+  return out;
+}
+
+let turn = null;            // the turn in progress
+let autoStreak = 0;
+let lineSeq = 0;
+const spoken = new Map();   // tts line id -> utterance, for highlighting the speaker
+
+function stopEverything() {
+  if (turn) { turn.abort.abort(); turn = null; }
+  try { tts?.stop(); } catch { /* nothing was speaking */ }
+  speechSynthesis?.cancel?.();
+  setSpeaking(null);
+}
+
+async function runTurn(mode, userText = '') {
+  stopEverything();
+  const mine = { abort: new AbortController(), mode, spans: [], sent: 0, speech: Promise.resolve() };
+  turn = mine;
+  if (userText) { session.transcript.push({ id: 'host', text: userText }); logLine('host', userText); autoStreak = 0; }
+  $('status').textContent = 'The table is thinking…';
+  const valid = new Set(['mod', ...session.experts.map((e) => e.id)]);
+  const render = (text, done) => {
+    if (turn !== mine) return;
+    // While streaming, a trailing "@e" may be half of a speaker tag: hold it back until its line is finished.
+    if (!done) text = text.replace(/(^|\n)@[^\n]*$/, '$1');
+    const parts = parseUtterances(text, valid);
+    parts.forEach((p, i) => { (mine.spans[i] ??= logLine(p.id)).textContent = p.text; });
+    $('log').scrollTop = $('log').scrollHeight;
+    const complete = done ? parts.length : parts.length - 1;
+    for (; mine.sent < complete; mine.sent++) {
+      const item = parts[mine.sent];
+      if (!item.text) continue;
+      session.transcript.push(item);
+      say(mine, item);
+    }
+  };
+  try {
+    const out = await ask(scenePrompt(mode), { signal: mine.abort.signal, onText: ({ text }) => render(text, false) });
+    render(out.text, true);
+  } catch (err) {
+    if (turn !== mine) return;
+    $('status').textContent = err?.code === 'rate_limited' ? 'Claude is rate limited right now. Wait a few seconds and try again.'
+      : `The table could not answer (${err?.code || err?.message || 'error'}). Try again.`;
+    turn = null;
+    return;
+  }
+  await mine.speech;
+  if (turn !== mine) return;
+  turn = null;
+  setSpeaking(null);
+  if (mode === 'wrap') { $('status').textContent = 'Call ended. The transcript is on the right.'; return; }
+  $('status').textContent = 'Your turn. Speak, type, or let them keep going.';
+  if ($('auto').checked && autoStreak < 2) {
+    autoStreak++;
+    setTimeout(() => { if (!turn && !listening) runTurn('continue'); }, 1200);
+  }
+}
+
+// Queue one utterance for speech. Lines play in order; the chain resolves when the last one has been heard.
+function say(mine, item) {
+  const [voice, rate] = session.people[item.id].voice.split('|');
+  if (tts) {
+    const id = `l${++lineSeq}`;
+    spoken.set(id, item);
+    const done = tts.add([{ text: item.text.slice(0, 1900), voice, rate: Number(rate), language: session.lang, id }]).catch(() => {});
+    mine.speech = Promise.all([mine.speech, done]);
+  } else {
+    // No voice in this view: show each caption for about as long as it would take to say.
+    mine.speech = mine.speech.then(async () => {
+      if (turn !== mine) return;
+      setSpeaking(item.id); setCaption(item.id, item.text); $('status').textContent = '';
+      await sleep(1200 + item.text.length * 55);
+    });
+  }
+}
+
+// ---------- Host input ----------
+
+$('say').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = $('sayText').value.trim();
+  if (!text) return;
+  $('sayText').value = '';
+  runTurn('reply', text);
+});
+$('continue').addEventListener('click', () => { autoStreak = 0; runTurn('continue'); });
+$('end').addEventListener('click', () => { $('auto').checked = false; runTurn('wrap'); });
+
+let listening = false;
+function wireDictation() {
+  let heard = '';
+  dictation.onPartial(({ text }) => { $('sayText').value = `${heard} ${text}`.trim(); });
+  dictation.onFinal(({ text }) => { heard = `${heard} ${text}`.trim(); $('sayText').value = heard; });
+  dictation.onState(({ state }) => {
+    listening = state === 'listening';
+    $('mic').classList.toggle('listening', listening);
+    $('mic').textContent = listening ? 'Listening… tap to send' : 'Speak';
+    if (!listening && heard) { const text = heard; heard = ''; $('sayText').value = ''; runTurn('reply', text); }
+  });
+  $('mic').addEventListener('click', () => {
+    if (listening) { dictation.stop().catch(() => {}); return; }
+    heard = '';
+    stopEverything(); // speaking up interrupts the table
+    dictation.start().catch((err) => {
+      if (err?.code === 'not_granted') $('mic').hidden = true;
+      $('status').textContent = 'The microphone is not available. You can type instead.';
+    });
+  });
+}
+</script>
+</body>
+</html>
